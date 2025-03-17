@@ -1,0 +1,14 @@
+[workspace]
+resolver = "2"
+members = [
+    "nexus-core",
+    "nexus-sample"
+]
+
+[workspace.dependencies]
+pingora = { git = "https://github.com/cloudflare/pingora", default-features = false, features = [
+    # pingora = { version = "0.4.0", default-features = false, features = [
+    "lb",
+    "openssl",
+    "cache",
+] }
