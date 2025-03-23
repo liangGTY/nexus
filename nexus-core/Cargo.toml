@@ -8,3 +8,8 @@ name = "nexus_core"
 path = "src/lib.rs"
 
 [dependencies]
+pingora = {workspace = true}
+async-trait = "0.1.88"
+trie-hard = "0.1.0"
+tokio = "1.44.1"
+arc-swap = "1.7.1"

@@ -2,7 +2,7 @@
 resolver = "2"
 members = [
     "nexus-core",
-    "nexus-sample"
+    "nexus-server"
 ]
 
 [workspace.dependencies]
@@ -10,5 +10,7 @@ pingora = { git = "https://github.com/cloudflare/pingora", default-features = fa
     # pingora = { version = "0.4.0", default-features = false, features = [
     "lb",
     "openssl",
-    "cache",
+    "cache"
+#    "core"
 ] }
+nexus-core = { path = "nexus-core" }
