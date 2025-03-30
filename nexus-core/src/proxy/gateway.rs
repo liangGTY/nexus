@@ -44,7 +44,10 @@ impl ProxyHttp for Gateway {
     where
         Self::CTX: Send + Sync,
     {
-        todo!()
+        self.route_manager
+            .match_route(_session.req_header_mut(), _ctx);
+
+        Ok(())
     }
 
     async fn request_body_filter(

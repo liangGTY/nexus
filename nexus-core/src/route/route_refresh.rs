@@ -37,7 +37,7 @@ where
             .collect();
 
         for route in routes {
-            router.insert(route.path.clone(), route).unwrap();
+            router.insert(route.path.clone(), Arc::new(route)).unwrap();
         }
         self.route_store.router.store(Arc::new(router));
     }

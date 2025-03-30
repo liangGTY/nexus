@@ -55,7 +55,8 @@ impl RouteStore {
     }
 
     pub fn match_route(&self, req: &mut RequestHeader, ctx: &mut Ctx) {
-        let result = self.router.load().at(req.uri.path());
+        let guard = self.router.load();
+        let result = guard.at(req.uri.path());
 
         match result {
             Ok(value) => {
