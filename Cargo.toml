@@ -11,6 +11,6 @@ pingora = { git = "https://github.com/cloudflare/pingora", default-features = fa
     "lb",
     "openssl",
     "cache"
-#    "core"
+    #    "core"
 ] }
 nexus-core = { path = "nexus-core" }

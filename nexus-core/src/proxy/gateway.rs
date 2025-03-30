@@ -1,17 +1,18 @@
-use crate::proxy::route::{Route, RouteLocator, RouteManager};
+use crate::route::{Route, RouteStore};
 use async_trait::async_trait;
 use pingora::http::ResponseHeader;
 use pingora::modules::http::grpc_web::GrpcWeb;
 use pingora::modules::http::HttpModules;
 use pingora::prelude::{HttpPeer, ProxyHttp, Session};
+use std::sync::Arc;
 
 pub struct Gateway {
-    pub route_manager: RouteManager<Box<dyn RouteLocator>>,
+    pub route_manager: Arc<RouteStore>,
 }
 
 #[derive(Default)]
 pub struct Ctx {
-    route: Option<Route>,
+    pub route: Option<Arc<Route>>,
 }
 
 #[async_trait]
@@ -24,8 +25,8 @@ impl ProxyHttp for Gateway {
 
     async fn upstream_peer(
         &self,
-        session: &mut Session,
-        ctx: &mut Self::CTX,
+        _session: &mut Session,
+        _ctx: &mut Self::CTX,
     ) -> pingora::Result<Box<HttpPeer>> {
         todo!()
     }
@@ -38,6 +39,19 @@ impl ProxyHttp for Gateway {
     async fn early_request_filter(
         &self,
         _session: &mut Session,
+        _ctx: &mut Self::CTX,
+    ) -> pingora::Result<()>
+    where
+        Self::CTX: Send + Sync,
+    {
+        todo!()
+    }
+
+    async fn request_body_filter(
+        &self,
+        _session: &mut Session,
+        _body: &mut Option<bytes::Bytes>,
+        _end_of_stream: bool,
         _ctx: &mut Self::CTX,
     ) -> pingora::Result<()>
     where

@@ -1,0 +1,13 @@
+[
+  {
+    "path": "/",
+    "plugins": [
+      {
+        "type": "RequestTransformer",
+        "remove_headers": [
+          "Content-Type"
+        ]
+      }
+    ]
+  }
+]

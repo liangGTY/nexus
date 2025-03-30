@@ -1,36 +1,32 @@
-use async_trait::async_trait;
 use nexus_core::proxy::gateway::Gateway;
-use nexus_core::proxy::route::{Route, RouteLocator, RouteManager};
-use pingora::prelude::Opt;
+use nexus_core::route::route_refresh::RouteRefresh;
+use nexus_core::route::static_file_conf_locator::StaticFileConfLocator;
+use nexus_core::route::RouteStore;
+use pingora::prelude::{background_service, Opt};
 use pingora::proxy::http_proxy_service;
 use pingora::server;
 use pingora::server::configuration::ServerConf;
 use std::error::Error;
 use std::sync::Arc;
 
-struct Some {}
-
-#[async_trait]
-impl RouteLocator for Some {
-    async fn get_routes(&self) -> Vec<Route> {
-        todo!()
-    }
-}
-
 fn run() -> Result<(), Box<dyn Error>> {
     let opt = Opt::parse_args();
     let mut server = server::Server::new(opt)?;
     server.bootstrap();
     let arc = Arc::new(ServerConf::default());
+    let manager = Arc::new(RouteStore::new());
     let mut service = http_proxy_service(
         &arc,
         Gateway {
-            route_manager: RouteManager::new(Box::new(Some {})),
+            route_manager: manager.clone(),
         },
     );
 
+    let refresh = RouteRefresh::new( StaticFileConfLocator::new("config/route.json"), manager.clone());
+
     service.add_tcp("0.0.0.0:8080");
     server.add_service(service);
+    server.add_service(background_service("s", refresh));
     server.run_forever();
 }
 
