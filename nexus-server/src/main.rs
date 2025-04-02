@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use nexus_core::proxy::gateway::Gateway;
 use nexus_core::route::route_refresh::RouteRefresh;
 use nexus_core::route::static_file_conf_locator::StaticFileConfLocator;

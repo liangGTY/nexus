@@ -14,13 +14,11 @@ pub struct RequestTransformer {
 
 #[async_trait]
 impl Plugin for RequestTransformer {
-
     fn new(conf: Value) -> Self
     where
-        Self: Sized
+        Self: Sized,
     {
-        let plugin = serde_json::from_value(conf).unwrap();
-        plugin
+        serde_json::from_value(conf).unwrap()
     }
 
     async fn request_filter(&self, _session: &mut Session, _ctx: &mut Ctx) -> pingora::Result<bool> {

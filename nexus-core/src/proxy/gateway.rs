@@ -4,7 +4,9 @@ use pingora::http::ResponseHeader;
 use pingora::modules::http::grpc_web::GrpcWeb;
 use pingora::modules::http::HttpModules;
 use pingora::prelude::{HttpPeer, ProxyHttp, Session};
+use pingora::{Error, ErrorType};
 use std::sync::Arc;
+use crate::plugin::Plugin;
 
 pub struct Gateway {
     pub route_manager: Arc<RouteStore>,
@@ -13,6 +15,7 @@ pub struct Gateway {
 #[derive(Default)]
 pub struct Ctx {
     pub route: Option<Arc<Route>>,
+    // pub path_param: Option<Params>
 }
 
 #[async_trait]
@@ -35,7 +38,8 @@ impl ProxyHttp for Gateway {
         modules.add_module(Box::new(GrpcWeb));
     }
 
-    /// router locater
+
+    /// match route
     async fn early_request_filter(
         &self,
         _session: &mut Session,
@@ -44,10 +48,32 @@ impl ProxyHttp for Gateway {
     where
         Self::CTX: Send + Sync,
     {
-        self.route_manager
+        let matched_route = self.route_manager
             .match_route(_session.req_header_mut(), _ctx);
 
-        Ok(())
+        match matched_route {
+            Some(route) => {
+                Ok(())
+            }
+            None => {
+                Err(Error::new(ErrorType::HTTPStatus(404)))
+            }
+        }
+    }
+
+    async fn request_filter(&self, session: &mut Session, ctx: &mut Self::CTX) -> pingora::Result<bool>
+    where
+        Self::CTX: Send + Sync,
+    {
+        // 先获取 route 的引用，避免多层解引用
+        let route = ctx.route.clone()
+            .expect("route should be initialized");
+
+        for plugin in &route.plugins {
+            plugin.request_filter(session, ctx).await;
+        }
+
+        Ok(false)
     }
 
     async fn request_body_filter(
