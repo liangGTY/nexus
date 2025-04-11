@@ -1,13 +1,24 @@
-[
-  {
-    "path": "/user",
-    "plugins": [
-      {
-        "type": "RequestTransformer",
-        "remove_headers": [
-          "Content-Type"
-        ]
-      }
-    ]
-  }
-]
+{
+  "routes": [
+    {
+      "path": "/user",
+      "plugins": [
+        {
+          "type": "RequestTransformer",
+          "remove_headers": [
+            "Content-Type"
+          ]
+        }
+      ]
+    }
+  ],
+  "upstreams": [
+    {
+      "name": "demo",
+      "kind": "static",
+      "nodes": [
+        ""
+      ]
+    }
+  ]
+}

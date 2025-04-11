@@ -20,7 +20,6 @@ impl StaticFileConfLocator {
 impl RouteConfLocator for StaticFileConfLocator {
     async fn get_routes(&self) -> Vec<RouteConf> {
         let json_string = fs::read_to_string(self.file.clone()).await.unwrap();
-
         serde_json::from_str(json_string.as_str()).expect("json deserialization error")
     }
 }

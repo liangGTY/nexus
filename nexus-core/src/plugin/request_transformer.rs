@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 use bytes::Bytes;
+use pingora::http::RequestHeader;
 use pingora::prelude::Session;
 use serde::Deserialize;
 use serde_json::Value;
@@ -21,12 +22,12 @@ impl Plugin for RequestTransformer {
         serde_json::from_value(conf).unwrap()
     }
 
-    async fn request_filter(&self, _session: &mut Session, _ctx: &mut Ctx) -> pingora::Result<bool> {
-        todo!()
-    }
-
-    async fn request_body_filter(&self, _session: &mut Session, _body: &mut Option<Bytes>, end_of_stream: bool, ctx: &mut Ctx) -> pingora::Result<()> {
-        todo!()
+    async fn request_filter(&self, session: &mut Session, _ctx: &mut Ctx) -> pingora::Result<bool> {
+        let req = session.req_header_mut();
+        for rm_header in self.remove_headers.iter() {
+            req.remove_header(rm_header);
+        }
+        Ok(false)
     }
 }
 

@@ -15,7 +15,6 @@ pub struct Gateway {
 #[derive(Default)]
 pub struct Ctx {
     pub route: Option<Arc<Route>>,
-    // pub path_param: Option<Params>
 }
 
 #[async_trait]
@@ -38,8 +37,20 @@ impl ProxyHttp for Gateway {
         modules.add_module(Box::new(GrpcWeb));
     }
 
+    async fn request_filter(&self, session: &mut Session, ctx: &mut Self::CTX) -> pingora::Result<bool>
+    where
+        Self::CTX: Send + Sync,
+    {
+        let route = ctx.route.clone()
+            .expect("route should be initialized");
 
-    /// match route
+        for plugin in &route.plugins {
+            let _ = plugin.request_filter(session, ctx).await;
+        }
+
+        Ok(false)
+    }
+
     async fn early_request_filter(
         &self,
         _session: &mut Session,
@@ -61,32 +72,24 @@ impl ProxyHttp for Gateway {
         }
     }
 
-    async fn request_filter(&self, session: &mut Session, ctx: &mut Self::CTX) -> pingora::Result<bool>
-    where
-        Self::CTX: Send + Sync,
-    {
-        // 先获取 route 的引用，避免多层解引用
-        let route = ctx.route.clone()
-            .expect("route should be initialized");
-
-        for plugin in &route.plugins {
-            plugin.request_filter(session, ctx).await;
-        }
-
-        Ok(false)
-    }
-
     async fn request_body_filter(
         &self,
-        _session: &mut Session,
-        _body: &mut Option<bytes::Bytes>,
-        _end_of_stream: bool,
-        _ctx: &mut Self::CTX,
+        session: &mut Session,
+        body: &mut Option<bytes::Bytes>,
+        end_of_stream: bool,
+        ctx: &mut Self::CTX,
     ) -> pingora::Result<()>
     where
         Self::CTX: Send + Sync,
     {
-        todo!()
+        let route = ctx.route.clone()
+            .expect("route should be initialized");
+
+        for plugin in &route.plugins {
+            let _ = plugin.request_body_filter(session, body, end_of_stream, ctx).await;
+        }
+
+        Ok(())
     }
 
     fn upstream_response_filter(

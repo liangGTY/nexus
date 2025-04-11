@@ -5,17 +5,21 @@ pub mod static_file_conf_locator;
 use crate::plugin::{Plugin, PluginConf, PLUGIN_FACTORY};
 use crate::proxy::gateway::Ctx;
 use arc_swap::ArcSwap;
-use matchit::{Match, MatchError, Router};
+use matchit::Router;
 use pingora::http::RequestHeader;
 use serde::Deserialize;
 use std::sync::Arc;
-use pingora::cache::cache_control::Cacheable::No;
+use pingora::lb::LoadBalancer;
+use pingora::lb::selection::BackendSelection;
+use pingora::lb::selection::consistent::KetamaHashing;
 
 pub struct Route {
     path: String,
 
     // predicate: Box<dyn Predicate>,
     pub plugins: Vec<Box<dyn Plugin>>,
+
+    pub lb: LoadBalancer<KetamaHashing>
 }
 
 impl TryFrom<RouteConf> for Route {
@@ -56,14 +60,10 @@ impl RouteStore {
     }
 
     pub fn match_route(&self, req: &mut RequestHeader, ctx: &mut Ctx) -> Option<Arc<Route>> {
-        let guard = self.router.load();
-        let result = guard.at(req.uri.path());
-
-        match result {
-            Ok(value) => {
-                ctx.route = Some(value.value.clone());
-                // ctx.path_param = Some(value.params);
-                Some(value.value.clone())
+        match self.router.load().at(req.uri.path()) {
+            Ok(matched) => {
+                ctx.route = Some(matched.value.clone());
+                Some(matched.value.clone())
             }
             Err(_) => {
                 None

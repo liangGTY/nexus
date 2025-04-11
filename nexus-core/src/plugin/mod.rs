@@ -28,15 +28,17 @@ pub trait Plugin: Sync + Send {
         Self: Sized;
 
     async fn request_filter(&self, _session: &mut Session, _ctx: &mut Ctx)
-        -> pingora::Result<bool>;
+                            -> pingora::Result<bool>;
 
     async fn request_body_filter(
         &self,
-        session: &mut Session,
-        body: &mut Option<bytes::Bytes>,
-        end_of_stream: bool,
-        ctx: &mut Ctx,
-    ) -> pingora::Result<()>;
+        _session: &mut Session,
+        _body: &mut Option<bytes::Bytes>,
+        _end_of_stream: bool,
+        _ctx: &mut Ctx,
+    ) -> pingora::Result<()> {
+        Ok(())
+    }
 }
 
 pub static PLUGIN_FACTORY: Lazy<PluginFactory> = Lazy::new(PluginFactory::new);
@@ -56,7 +58,7 @@ impl PluginFactory {
     pub fn register<F>(&self, category: &str, creator: F)
     where
         F: Fn(Value) -> Result<Box<dyn Plugin>, ()> + Send + Sync + 'static,
-        // F: NewPlugin,
+    // F: NewPlugin,
     {
         self.plugins.insert(category.to_string(), Box::new(creator));
     }
